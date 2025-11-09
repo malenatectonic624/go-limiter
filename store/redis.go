@@ -64,38 +64,37 @@ func NewRedis(client *redis.Client) ratelimiter.Store {
 		local entry = redis.call("HGETALL", key)
 		local tokens
 		local last_updated
+		local allowed = 0
 
 		if #entry == 0 then
-			tokens = burst
+			tokens = burst - cost
 			last_updated = now
+			allowed = 1
 		else
 			tokens = tonumber(entry[2])
 			last_updated = tonumber(entry[4])
+
+			local elapsed = now - last_updated
+			if elapsed > 0 then
+				tokens = tokens + elapsed * rate
+				if tokens > burst then
+					tokens = burst
+				end
+			end
+
+			if tokens >= cost then
+				tokens = tokens - cost
+				allowed = 1
+			end
 		end
-		
-		local elapsed = now - last_updated
-		if elapsed > 0 then
-			local new_tokens = elapsed * rate
-			tokens = tokens + new_tokens
-		end
-		
-		if tokens > burst then
-			tokens = burst
-		end
-		
-		local allowed = 0
-		if tokens >= cost then
-			tokens = tokens - cost
-			allowed = 1
-		end
-		
+
 		redis.call("HSET", key, "tokens", tokens, "last_updated", now)
 		local ttl = math.ceil((burst / rate) * 2)
 		if ttl < 10 then
 			ttl = 10
 		end
 		redis.call("EXPIRE", key, ttl)
-		
+
 		return {allowed, tostring(tokens)}
 	`
 
