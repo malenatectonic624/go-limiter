@@ -75,29 +75,183 @@ limiter := ratelimiter.NewFixedWindow(store, 100, time.Minute)
 
 # Middleware Usage
 ## net/http
+```bash
+go get github.com/jassus213/go-limiter/middleware/nethttp
+```
+
 ```go
 http.Handle("/", limiter.RateLimiter(limiter))
 ```
 
 ## Gin
+```bash
+go get github.com/jassus213/go-limiter/middleware/gin
+```
+
 ```go
 r := gin.Default()
 r.Use(ginmiddleware.RateLimiter(limiter))
 ```
 
 ## Echo
+```bash
+go get github.com/jassus213/go-limiter/middleware/echo
+```
+
 ```go
 e := echo.New()
 e.Use(echomiddleware.RateLimiter(limiter))
 ```
 
 ## Chi
+```bash
+go get github.com/jassus213/go-limiter/middleware/chi
+```
+
 ```go
 r := chi.NewRouter()
 r.Use(chimiddleware.RateLimiter(limiter))
 ```
 
 ---
+
+# 🧾 Logging
+`go-limiter` provides pluggable logging modules under the `logger/` package.  
+You can use the standard `log` package or popular structured loggers like Logrus, Zap, or Zerolog.
+
+Install only what you need:
+
+```bash
+# standard log (no extra deps)
+go get github.com/jassus213/go-limiter/logger/log
+
+# logrus integration
+go get github.com/jassus213/go-limiter/logger/logrus
+
+# zap integration
+go get github.com/jassus213/go-limiter/logger/zap
+
+# zerolog integration
+go get github.com/jassus213/go-limiter/logger/zerolog
+```
+
+Each logger implements a common interface, so you can pass it into limiter options:
+
+## 🧱 Example — Standard Logger with Gin Middleware
+
+```go
+package main
+
+import (
+	"context"
+	"log"
+	"net/http"
+	"os/signal"
+	"strconv"
+	"syscall"
+	"time"
+
+	"github.com/gin-gonic/gin"
+	stdlogadapter "github.com/jassus213/go-limiter/logger/log"
+	ginMiddleware "github.com/jassus213/go-limiter/middleware/gin"
+	"github.com/jassus213/go-limiter/ratelimiter"
+	"github.com/jassus213/go-limiter/store"
+)
+
+func main() {
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	// Create a standard logger adapter
+	stdLogger := stdlogadapter.New(log.Default())
+
+	// In-memory token bucket limiter
+	limiterStore := store.NewMemory(ctx, 10*time.Minute)
+	limiter := ratelimiter.NewTokenBucket(limiterStore, 1.0, 5)
+
+	// Configure limiter options
+	config := []ratelimiter.Option{
+		ratelimiter.WithLogger(stdLogger),
+		ratelimiter.WithErrorHandler(func(w http.ResponseWriter, r *http.Request, err error, result ratelimiter.Result) {
+			stdLogger.Errorf(
+				"Rate limit exceeded for key: %s | Remaining: %d | Limit: %d",
+				r.RemoteAddr, result.Remaining, result.Limit,
+			)
+			retryAfter := int(result.ResetAfter.Seconds())
+			if retryAfter <= 0 {
+				retryAfter = 1
+			}
+			w.Header().Set("Retry-After", strconv.Itoa(retryAfter))
+			http.Error(w, "Too Many Requests", http.StatusTooManyRequests)
+		}),
+	}
+
+	// Setup Gin router with middleware
+	router := gin.Default()
+	router.Use(ginMiddleware.RateLimiter(limiter, config...))
+
+	router.GET("/ping", func(c *gin.Context) {
+		c.String(http.StatusOK, "pong")
+	})
+
+	log.Println("Server running on http://localhost:8080")
+	if err := router.Run(":8080"); err != nil {
+		log.Fatalf("Failed to run server: %v", err)
+	}
+}
+```
+
+## 🔹Logrus Example
+```go
+import (
+	"github.com/sirupsen/logrus"
+	llog "github.com/jassus213/go-limiter/logger/logrus"
+)
+
+base := logrus.New()
+logger := llog.New(base)
+
+config := []ratelimiter.Option{
+	ratelimiter.WithLogger(logger),
+}
+
+router.Use(ginMiddleware.RateLimiter(limiter, config...))
+```
+
+## 🔹Zap Example
+```go
+import (
+	"go.uber.org/zap"
+	zlog "github.com/jassus213/go-limiter/logger/zap"
+)
+
+base, _ := zap.NewProduction()
+logger := zlog.New(base)
+
+config := []ratelimiter.Option{
+	ratelimiter.WithLogger(logger),
+}
+
+router.Use(ginMiddleware.RateLimiter(limiter, config...))
+```
+
+## 🔹Zerolog Example
+```go
+import (
+	"os"
+	"github.com/rs/zerolog"
+	zl "github.com/jassus213/go-limiter/logger/zerolog"
+)
+
+base := zerolog.New(os.Stdout).With().Timestamp().Logger()
+logger := zl.New(base)
+
+config := []ratelimiter.Option{
+	ratelimiter.WithLogger(logger),
+}
+
+router.Use(ginMiddleware.RateLimiter(limiter, config...))
+```
 
 # HTTP Headers
 When a request is allowed/denied, middleware sets HTTP headers for rate‑limit info:
