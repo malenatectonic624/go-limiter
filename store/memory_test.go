@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"math"
 	"testing"
 	"time"
 )
@@ -40,32 +41,29 @@ func TestMemoryStore_TakeToken(t *testing.T) {
 	key := "user:abc"
 	rate := 1.0
 	burst := int64(2)
+	epsilon := 1e-6
 
-	// Первый запрос — берем 1 токен
 	allowed, remaining, _ := s.TakeToken(ctx, key, rate, burst)
 	if !allowed {
 		t.Fatalf("Expected allowed true")
 	}
-	if remaining != float64(burst-1) {
+	if math.Abs(remaining-float64(burst-1)) > epsilon {
 		t.Fatalf("Expected remaining %f, got %f", float64(burst-1), remaining)
 	}
 
-	// Второй запрос — берем последний токен
 	allowed, remaining, _ = s.TakeToken(ctx, key, rate, burst)
 	if !allowed {
 		t.Fatalf("Expected allowed true")
 	}
-	if remaining != 0 {
+	if math.Abs(remaining-0) > epsilon {
 		t.Fatalf("Expected remaining 0, got %f", remaining)
 	}
 
-	// Третий запрос — токенов больше нет
 	allowed, remaining, _ = s.TakeToken(ctx, key, rate, burst)
 	if allowed {
 		t.Fatalf("Expected allowed false")
 	}
 
-	// Ждём 1 секунду для пополнения токенов
 	time.Sleep(time.Second + 10*time.Millisecond)
 
 	allowed, remaining, _ = s.TakeToken(ctx, key, rate, burst)
