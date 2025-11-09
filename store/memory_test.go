@@ -41,14 +41,16 @@ func TestMemoryStore_TakeToken(t *testing.T) {
 	rate := 1.0
 	burst := int64(2)
 
+	// Первый запрос — берем 1 токен
 	allowed, remaining, _ := s.TakeToken(ctx, key, rate, burst)
 	if !allowed {
 		t.Fatalf("Expected allowed true")
 	}
 	if remaining != float64(burst-1) {
-		t.Fatalf("Expected remaining %d, got %f", burst-1, remaining)
+		t.Fatalf("Expected remaining %f, got %f", float64(burst-1), remaining)
 	}
 
+	// Второй запрос — берем последний токен
 	allowed, remaining, _ = s.TakeToken(ctx, key, rate, burst)
 	if !allowed {
 		t.Fatalf("Expected allowed true")
@@ -57,12 +59,15 @@ func TestMemoryStore_TakeToken(t *testing.T) {
 		t.Fatalf("Expected remaining 0, got %f", remaining)
 	}
 
+	// Третий запрос — токенов больше нет
 	allowed, remaining, _ = s.TakeToken(ctx, key, rate, burst)
 	if allowed {
 		t.Fatalf("Expected allowed false")
 	}
 
+	// Ждём 1 секунду для пополнения токенов
 	time.Sleep(time.Second + 10*time.Millisecond)
+
 	allowed, remaining, _ = s.TakeToken(ctx, key, rate, burst)
 	if !allowed {
 		t.Fatalf("Expected allowed true after refill")
